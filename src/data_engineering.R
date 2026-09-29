@@ -22,10 +22,6 @@ video_features <-video_view %>% mutate(watch_rate_rank = rank(-watch_rate),
 
 write_csv(video_features, "temp/video_features.csv")
 
-video_features %>% select(video_id, creator_id, impressions_n, watch_rate, watch_rate_rank, reach_band, high_quality) %>%
-slice_head(n = 10) %>%
-    knitr::kable(caption = "Top 10 videos by watch rate")
-
 video_features <- video_view %>%
     mutate(watch_rate_rank = rank(-watch_rate),
         reach_band = case_when(
@@ -37,22 +33,28 @@ video_features <- video_view %>%
         distinct(video_id, .keep_all = TRUE) %>%
         arrange(watch_rate_rank)
 
-write_csv(video_features, "temp/video_features.csv") %>% select(video_id, creator_id, impressions_n, watch_rate, watch_rate_rank, reach_band, high_quality) %>%
-    slice_head(n = 10)
-
-
-
-
-
-
-
-
-
-
 
 # Exercise 2
+creator_summary <- video_features %>% group_by(creator_id) %>% 
+    summarise(
+        impressions_total = sum(impressions_n, na.rm = TRUE),
+        watched_total = sum(watched_n, na.rm = TRUE),
+        avg_watch_rate = mean(watch_rate, na.rm = TRUE),
+        median_watch_seconds = median(avg_watch_seconds_when_watched, na.rm = TRUE),
+        videos_n = n()
+    ) %>%
+    arrange(desc(impressions_total))
 
+write_csv(creator_summary, "temp/creator_summary.csv")
 
+engagement_by_band <- video_features %>%
+    group_by(reach_band) %>%
+    summarise (
+        videos_n = n(),
+        avg_watch_rate = mean(watch_rate, na.rm = TRUE)
+    )
+
+write_csv(engagement_by_band, "temp/engagement_by_band.csv")
 
 # Exercise 3
 
