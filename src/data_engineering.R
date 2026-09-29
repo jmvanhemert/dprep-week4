@@ -76,12 +76,45 @@ write_csv(user_enriched, "temp/user_enriched.csv")
 # Exercise 4
 
 watch_log <- impressions %>%
-    left_join(watch_events, by = c("impression_id", "session_id", "user_id", "video_id", "creator_id")) %>%
-    left_join(sessions, by = c("session_id", "user_id", "video_id", "creator_id")) %>%
-    left_join(videos, by = c("video_id", "creator_id"))
+  left_join(watch_events,
+            by = c("impression_id", "session_id", "user_id",
+                   "video_id", "creator_id")) %>%
+  left_join(sessions, by = c("session_id", "user_id", "watch_seconds")) %>%
+  left_join(videos, by = c("video_id", "creator_id")) %>%
+  left_join(creators, by = "creator_id")
+
+write_csv(watch_log, "temp/watch_log.csv")
+
+watched_only <- impressions %>%
+    inner_join(watch_events, by = "impression_id")
+
+write_csv(watched_only, "temp/watched_only.csv")
+
+creator_event_summary <- watch_log %>%
+    group_by(creator_id) %>%
+    summarise(
+        impressions_n = n(),
+        watched_events_n = sum(!is.na(action)),
+        watch_seconds_total = sum(watch_seconds, na.rm = TRUE))
+
+write_csv(creator_event_summary, "temp/creator_event_summary.csv")
+
 
 # Exercise 5
 
+creator_daily <- watch_log %>%
+mutate(
+shown_ts = as.POSIXct(shown_at, format = "%Y-%m-%dT%H:%M:%SZ", tz = "UTC"),
+shown_day = as.Date(shown_ts)
+) %>%
+count(creator_id, shown_day, name = "impressions_n")
 
+creator_daily <- creator_daily %>%
+    group_by(creator_id) %>%
+    arrange(shown_day) %>%
+    mutate(
+        impressions_lag1 = lag(impressions_n),
+        impressions_change = impressions_n - impressions_lag1
+    )
 
-
+write_csv(creator_daily, "temp/creator_daily.csv")
