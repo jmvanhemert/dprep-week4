@@ -8,6 +8,7 @@ impressions <- read_csv("data/impressions.csv")
 sessions <- read_csv("data/sessions.csv")
 users <- read_csv("data/users.csv")
 watch_events <- read_csv("data/watch_events.csv")
+creators <- read_csv("data/creators.csv")
 
 # Exercise 1
 video_features <-video_view %>% mutate(watch_rate_rank = rank(-watch_rate),
@@ -63,9 +64,24 @@ video_enriched <- video_features %>%
     left_join(creators, by = "creator_id") %>%
     select(video_id, creator_id, creator_name, impressions_n, watch_rate, watch_rate_rank, quality, posting_rate, publish_time)
 
+write_csv(video_enriched, "temp/video_enriched.csv")
+
+user_enriched <- user_view %>%
+    left_join(users, by = "user_id") %>%   
+    select(user_id, impressions_n, watched_n,
+    watch_rate, like_n, follow_n, baseline_login, satiation_decay)
+
+write_csv(user_enriched, "temp/user_enriched.csv")
 
 # Exercise 4
 
-
+watch_log <- impressions %>%
+    left_join(watch_events, by = c("impression_id", "session_id", "user_id", "video_id", "creator_id")) %>%
+    left_join(sessions, by = c("session_id", "user_id", "video_id", "creator_id")) %>%
+    left_join(videos, by = c("video_id", "creator_id"))
 
 # Exercise 5
+
+
+
+
