@@ -58,6 +58,10 @@ write_csv(engagement_by_band, "temp/engagement_by_band.csv")
 
 # Exercise 3
 
+video_enriched <- video_features %>%
+    left_join(videos, by = c("video_id", "creator_id")) %>%
+    left_join(creators, by = "creator_id") %>%
+    select(video_id, creator_id, creator_name, impressions_n, watch_rate, watch_rate_rank, quality, posting_rate, publish_time)
 
 
 # Exercise 4
